@@ -1,0 +1,113 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: placement-mentor-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - placement-network
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: placement-mentor-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - placement-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  ollama-init:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.ollama-init
+    container_name: placement-mentor-ollama-init
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - placement-network
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-tinyllama}
+      - OLLAMA_FALLBACK_MODEL=${OLLAMA_FALLBACK_MODEL:-llama3}
+
+  backend:
+    image: ayushman21/placement-mentor-backend:latest
+    container_name: placement-mentor-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/placement-mentor}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-tinyllama}
+      - OLLAMA_FALLBACK_MODEL=${OLLAMA_FALLBACK_MODEL:-llama3}
+      - OLLAMA_MAX_RETRIES=${OLLAMA_MAX_RETRIES:-3}
+      - OLLAMA_RETRY_DELAY=${OLLAMA_RETRY_DELAY:-2000}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-300000}
+      - JWT_SECRET=${JWT_SECRET:-placement-mentor-docker-secret}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - FRONTEND_URL=http://localhost:3000
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+    volumes:
+      - backend_uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - placement-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  frontend:
+    image: ayushman21/placement-mentor-frontend:latest
+    container_name: placement-mentor-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:5000/api/v1
+    restart: unless-stopped
+    networks:
+      - placement-network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  mongodb_data:
+  ollama_data:
+  backend_uploads:
+
+networks:
+  placement-network:
+    driver: bridge

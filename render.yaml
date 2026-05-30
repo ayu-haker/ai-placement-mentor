@@ -1,0 +1,5 @@
+version: 2
+build_config:
+  build_command: cd backend && npm install && npm run build
+  start_command: cd backend && npm start
+  publish_path: backend/dist
