@@ -64,7 +64,9 @@ export const uploadResume = async (req: AuthRequest, res: Response): Promise<voi
       }
     } catch (parseError) {
       resume.status = 'failed';
+      resume.errorMessage = parseError instanceof Error ? parseError.message : 'Unknown error';
       await resume.save();
+      console.error('Resume analysis failed:', parseError);
     }
 
     res.status(201).json({

@@ -16,6 +16,7 @@ export interface IResume extends Document {
     overallFeedback: string;
     parsedContent?: string;
   };
+  errorMessage?: string;
   status: 'processing' | 'completed' | 'failed';
   createdAt: Date;
   updatedAt: Date;
@@ -54,6 +55,7 @@ const resumeSchema = new Schema<IResume>(
       overallFeedback: { type: String, default: '' },
       parsedContent: String,
     },
+    errorMessage: { type: String },
     status: {
       type: String,
       enum: ['processing', 'completed', 'failed'],
