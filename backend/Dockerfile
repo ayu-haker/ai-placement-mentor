@@ -2,7 +2,6 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build deps for native modules
 RUN apk add --no-cache python3 make g++
 
 COPY package*.json ./
@@ -26,7 +25,7 @@ COPY package*.json ./
 EXPOSE 5000
 
 ENV NODE_ENV=production
-ENV OLLAMA_BASE_URL=http://ollama:11434
+ENV PORT=5000
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
   CMD curl -sf http://localhost:5000/health || exit 1

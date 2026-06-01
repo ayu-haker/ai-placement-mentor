@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../types';
 import Roadmap from '../models/Roadmap';
 import User from '../models/User';
-import { ollamaService } from '../services/ollama.service';
+import { groqService } from '../services/groq.service';
 
 export const generateRoadmap = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -17,7 +17,7 @@ export const generateRoadmap = async (req: AuthRequest, res: Response): Promise<
     const weeks = durationWeeks || 12;
     const currentSkills = user.profile.skills || [];
 
-    const roadmapData = await ollamaService.generateRoadmap(
+    const roadmapData = await groqService.generateRoadmap(
       currentSkills,
       targetRole,
       weeks

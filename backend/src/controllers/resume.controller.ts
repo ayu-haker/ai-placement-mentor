@@ -3,7 +3,7 @@ import { AuthRequest } from '../types';
 import Resume from '../models/Resume';
 import User from '../models/User';
 import { resumeParserService } from '../services/resumeParser.service';
-import { ollamaService } from '../services/ollama.service';
+import { groqService } from '../services/groq.service';
 
 export const uploadResume = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -34,7 +34,7 @@ export const uploadResume = async (req: AuthRequest, res: Response): Promise<voi
         req.file.mimetype
       );
 
-      const analysis = await ollamaService.analyzeResume(resumeText);
+      const analysis = await groqService.analyzeResume(resumeText);
 
       resume.analysis = {
         atsScore: analysis.atsScore,

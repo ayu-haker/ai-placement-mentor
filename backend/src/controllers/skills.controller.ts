@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../types';
 import SkillAssessment from '../models/SkillAssessment';
 import User from '../models/User';
-import { ollamaService } from '../services/ollama.service';
+import { groqService } from '../services/groq.service';
 
 export const analyzeSkillGap = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -16,7 +16,7 @@ export const analyzeSkillGap = async (req: AuthRequest, res: Response): Promise<
 
     const currentSkills = user.profile.skills || [];
 
-    const result = await ollamaService.analyzeSkillGap(currentSkills, targetRole);
+    const result = await groqService.analyzeSkillGap(currentSkills, targetRole);
 
     const assessment = await SkillAssessment.create({
       userId: user._id,

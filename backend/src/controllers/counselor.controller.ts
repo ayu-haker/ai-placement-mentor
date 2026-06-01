@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../types';
-import { ollamaService } from '../services/ollama.service';
+import { groqService } from '../services/groq.service';
 
 const chatHistories = new Map<string, { role: 'user' | 'assistant'; content: string; timestamp: Date }[]>();
 
@@ -26,7 +26,7 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
       timestamp: new Date(),
     });
 
-    const response = await ollamaService.chat(message, history);
+    const response = await groqService.chat(message, history);
 
     history.push({
       role: 'assistant',

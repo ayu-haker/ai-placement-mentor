@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/database';
-import { ollamaService } from './services/ollama.service';
+import { groqService } from './services/groq.service';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
@@ -41,37 +41,37 @@ app.get('/health', (_req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     services: {
-      ollama: ollamaReady ? 'connected' : 'pending',
+      groq: groqReady ? 'connected' : 'pending',
       database: dbReady ? 'connected' : 'pending',
     },
   });
 });
 
-app.get('/health/ollama', async (_req, res) => {
-  const healthy = await ollamaService.checkHealth();
+app.get('/health/groq', async (_req, res) => {
+  const healthy = await groqService.checkHealth();
   res.json({
     status: healthy ? 'ok' : 'error',
-    ollama: healthy ? 'reachable' : 'unreachable',
+    groq: healthy ? 'reachable' : 'unreachable',
   });
 });
 
 app.get('/health/models', async (_req, res) => {
   try {
-    const models = await ollamaService.listModels();
-    const primaryAvailable = await ollamaService.isModelAvailable(
-      process.env.OLLAMA_MODEL || 'llama3'
+    const models = await groqService.listModels();
+    const primaryAvailable = await groqService.isModelAvailable(
+      process.env.GROQ_MODEL || 'llama3-8b-8192'
     );
-    const fallbackAvailable = await ollamaService.isModelAvailable(
-      process.env.OLLAMA_FALLBACK_MODEL || 'gemma'
+    const fallbackAvailable = await groqService.isModelAvailable(
+      process.env.GROQ_FALLBACK_MODEL || 'gemma2-9b-it'
     );
     res.json({
       models,
       primary: {
-        name: process.env.OLLAMA_MODEL || 'llama3',
+        name: process.env.GROQ_MODEL || 'llama3-8b-8192',
         available: primaryAvailable,
       },
       fallback: {
-        name: process.env.OLLAMA_FALLBACK_MODEL || 'gemma',
+        name: process.env.GROQ_FALLBACK_MODEL || 'gemma2-9b-it',
         available: fallbackAvailable,
       },
     });
@@ -83,30 +83,23 @@ app.get('/health/models', async (_req, res) => {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-let ollamaReady = false;
+let groqReady = false;
 let dbReady = false;
 
-const initOllama = async (): Promise<void> => {
-  const maxAttempts = process.env.NODE_ENV === 'production' ? 30 : 5;
-  for (let i = 1; i <= maxAttempts; i++) {
-    const healthy = await ollamaService.checkHealth();
-    if (healthy) {
-      console.log('Ollama service is ready');
-      ollamaReady = true;
-      try {
-        const model = await ollamaService.ensureModelAvailable();
-        console.log(`Using Ollama model: ${model}`);
-      } catch (err) {
-        console.error('Model check failed:', err);
-      }
-      return;
+const initGroq = async (): Promise<void> => {
+  const healthy = await groqService.checkHealth();
+  if (healthy) {
+    console.log('Groq API is ready');
+    groqReady = true;
+    try {
+      const model = await groqService.ensureModelAvailable();
+      console.log(`Using Groq model: ${model}`);
+    } catch (err) {
+      console.error('Model check failed:', err);
     }
-    if (i < maxAttempts) {
-      console.log(`Waiting for Ollama (attempt ${i}/${maxAttempts})...`);
-      await new Promise((r) => setTimeout(r, 2000));
-    }
+    return;
   }
-  console.warn('Ollama not available. AI features will be disabled until Ollama starts.');
+  console.warn('Groq API not available. Check your GROQ_API_KEY.');
 };
 
 const startServer = async () => {
@@ -116,11 +109,11 @@ const startServer = async () => {
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-      console.log('Initializing Ollama in background...');
+      console.log('Initializing Groq in background...');
     });
 
-    initOllama().catch((err) => {
-      console.error('Ollama initialization error:', err);
+    initGroq().catch((err) => {
+      console.error('Groq initialization error:', err);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../types';
 import Interview from '../models/Interview';
 import User from '../models/User';
-import { ollamaService } from '../services/ollama.service';
+import { groqService } from '../services/groq.service';
 
 export const startInterview = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -22,7 +22,7 @@ export const startInterview = async (req: AuthRequest, res: Response): Promise<v
     const previousQuestions = previousInterviews
       .flatMap((i) => i.questions.map((q) => q.question));
 
-    const questions = await ollamaService.generateInterviewQuestions(
+    const questions = await groqService.generateInterviewQuestions(
       mode,
       skills || user.profile.skills,
       previousQuestions
@@ -74,7 +74,7 @@ export const submitAnswer = async (req: AuthRequest, res: Response): Promise<voi
 
     question.answer = answer;
 
-    const feedback = await ollamaService.evaluateInterviewAnswer(
+    const feedback = await groqService.evaluateInterviewAnswer(
       question.question,
       answer,
       []
@@ -123,7 +123,7 @@ export const completeInterview = async (req: AuthRequest, res: Response): Promis
       score: q.feedback?.score || 0,
     }));
 
-    const feedback = await ollamaService.generateInterviewFeedback(qaData);
+    const feedback = await groqService.generateInterviewFeedback(qaData);
 
     interview.overallScore = feedback.score;
     interview.feedback = {
