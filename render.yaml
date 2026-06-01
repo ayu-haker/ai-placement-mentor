@@ -1,5 +1,40 @@
-version: 2
-build_config:
-  build_command: cd backend && npm install && npm run build
-  start_command: cd backend && npm start
-  publish_path: backend/dist
+type: web
+runtime: node
+region: singapore
+plan: free
+
+build:
+  buildCommand: cd backend && npm install && npm run build
+  publishPath: backend
+
+startCommand: cd backend && node dist/app.js
+
+healthCheckPath: /health
+
+envVars:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "5000"
+  - key: MONGODB_URI
+    sync: false
+  - key: GROQ_API_KEY
+    sync: false
+  - key: GROQ_MODEL
+    value: llama3-8b-8192
+  - key: GROQ_FALLBACK_MODEL
+    value: gemma2-9b-it
+  - key: GROQ_MAX_RETRIES
+    value: "3"
+  - key: GROQ_RETRY_DELAY
+    value: "2000"
+  - key: GROQ_TIMEOUT
+    value: "120000"
+  - key: FRONTEND_URL
+    sync: false
+  - key: RATE_LIMIT_MAX
+    value: "100"
+  - key: JWT_SECRET
+    sync: false
+  - key: JWT_EXPIRES_IN
+    value: 7d
