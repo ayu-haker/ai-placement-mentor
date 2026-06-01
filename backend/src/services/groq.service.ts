@@ -27,11 +27,8 @@ export class GroqService {
 
   async checkHealth(): Promise<boolean> {
     try {
-      const res = await fetch('https://api.groq.com/openai/v1/models', {
-        headers: { Authorization: `Bearer ${groqConfig.apiKey}` },
-        signal: AbortSignal.timeout(5000),
-      });
-      return res.ok;
+      const models = await this.client.models.list();
+      return true;
     } catch {
       return false;
     }
@@ -39,13 +36,8 @@ export class GroqService {
 
   async listModels(): Promise<string[]> {
     try {
-      const res = await fetch('https://api.groq.com/openai/v1/models', {
-        headers: { Authorization: `Bearer ${groqConfig.apiKey}` },
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!res.ok) return [];
-      const data = await res.json() as { data: { id: string }[] };
-      return data.data.map((m) => m.id);
+      const models = await this.client.models.list();
+      return models.data.map((m: { id: string }) => m.id);
     } catch {
       return [];
     }
