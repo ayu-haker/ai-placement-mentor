@@ -18,9 +18,7 @@ export const connectDatabase = async (): Promise<void> => {
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    if (process.env.NODE_ENV === 'production') {
-      process.exit(1);
-    }
+    console.warn('Backend continuing in offline DB mode.');
   }
 
   mongoose.connection.on('error', (err) => {
