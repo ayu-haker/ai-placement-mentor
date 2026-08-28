@@ -17,7 +17,16 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/auth/login");
+      const autoGuest = async () => {
+        try {
+          const guestEmail = `guest_${Date.now()}_${Math.floor(Math.random() * 1000)}@placementmentor.app`;
+          await useAuthStore.getState().register(guestEmail, "GuestPassword123!", "Guest User");
+        } catch {
+          // fallback to login if auto guest fails
+          router.push("/auth/login");
+        }
+      };
+      autoGuest();
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -28,8 +37,6 @@ export default function DashboardLayout({
       </div>
     );
   }
-
-  if (!isAuthenticated) return null;
 
   return (
     <div className="flex h-screen overflow-hidden">
