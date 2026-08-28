@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,7 @@ import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuthStore();
   const [guestLoading, setGuestLoading] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push("/dashboard");
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   const handleGuestAccess = async () => {
     setGuestLoading(true);
@@ -30,14 +23,6 @@ export default function Home() {
       setGuestLoading(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#030612]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#030612] text-slate-100 flex flex-col justify-between selection:bg-blue-600/30">
