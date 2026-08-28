@@ -132,25 +132,23 @@ export default function CounselorPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">AI Career Counselor</h1>
-            <p className="text-muted-foreground">
-              Get career guidance, technology recommendations, and placement tips
-            </p>
-          </div>
-          <Button variant="outline" size="sm" onClick={clearHistory}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Clear Chat
-          </Button>
+        <div>
+          <h1 className="text-3xl font-bold">AI Career Counselor</h1>
+          <p className="text-muted-foreground">
+            Get career guidance, technology recommendations, and placement tips
+          </p>
         </div>
 
         <Card className="h-[65vh] flex flex-col">
-          <CardHeader className="border-b pb-3">
+          <CardHeader className="border-b pb-3 flex flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               Career Counselor
             </CardTitle>
+            <Button variant="outline" size="sm" onClick={clearHistory}>
+              <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+              Clear Chat
+            </Button>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col p-0">
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
