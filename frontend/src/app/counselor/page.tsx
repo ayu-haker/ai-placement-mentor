@@ -54,33 +54,50 @@ export default function CounselorPage() {
     setInput("");
     setSending(true);
 
-    try {
-      if (!api.getToken()) {
+    const ensureValidToken = async (): Promise<string | null> => {
+      let token = api.getToken();
+      if (!token) {
         try {
-          const guestEmail = `guest_${Date.now()}_${Math.floor(Math.random()*1000)}@placementmentor.app`;
-          const regRes: any = await api.auth.register({ email: guestEmail, password: "GuestPassword123!", name: "Guest User" });
+          const guestEmail = `guest_${Date.now()}_${Math.floor(Math.random() * 10000)}@placementmentor.app`;
+          const regRes: any = await api.auth.register({
+            email: guestEmail,
+            password: "GuestPassword123!",
+            name: "Guest User",
+          });
           if (regRes?.token) {
-            api.setToken(regRes.token);
+            token = regRes.token;
+            if (token) api.setToken(token);
           }
         } catch {
-          // ignore auto-reg error
+          // ignore
         }
       }
+      return token;
+    };
 
-      const res: any = await api.counselor.sendMessage(userMsg.content);
+    try {
+      await ensureValidToken();
+      let res: any;
+      try {
+        res = await api.counselor.sendMessage(userMsg.content);
+      } catch (firstErr: any) {
+        // Clear token, fetch new guest token, and retry once
+        api.clearToken();
+        await ensureValidToken();
+        res = await api.counselor.sendMessage(userMsg.content);
+      }
+
       const assistantMsg: ChatMessage = {
         role: "assistant",
         content: res.message,
-        timestamp: res.timestamp,
+        timestamp: res.timestamp || new Date().toISOString(),
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err: any) {
-      const errorText = !api.getToken()
-        ? "Please login or register to use the AI Counselor."
-        : "Sorry, I encountered an error. Please try again.";
+      console.error("Counselor chat error:", err);
       const errorMsg: ChatMessage = {
         role: "assistant",
-        content: errorText,
+        content: "Sorry, I encountered an error. Please try again.",
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
