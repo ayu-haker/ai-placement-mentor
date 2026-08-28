@@ -11,6 +11,9 @@ import { Paperclip, Send, Loader2, MessageSquare, Bot, User, Trash2 } from "luci
 import { cn } from "@/lib/utils";
 import DashboardLayout from "@/app/dashboard/layout";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function CounselorPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
