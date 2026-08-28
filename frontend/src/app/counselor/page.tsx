@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { api } from "@/lib/api";
 import type { ChatMessage } from "@/types";
-import { Bot, User, Send, Trash2, Loader2, MessageCircle } from "lucide-react";
+import { Paperclip, Send, Loader2, MessageSquare, Bot, User, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DashboardLayout from "@/app/dashboard/layout";
 
@@ -123,7 +123,7 @@ export default function CounselorPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
         </div>
       </DashboardLayout>
     );
@@ -131,56 +131,85 @@ export default function CounselorPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">AI Career Counselor</h1>
-            <p className="text-slate-400 mt-1">
-              Get career guidance, technology recommendations, and placement tips
-            </p>
+      <div className="max-w-5xl mx-auto py-4 px-2">
+        <Card className="rounded-xl overflow-hidden border-none shadow-2xl bg-white text-slate-800">
+          {/* Blue Top Header Banner */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 md:p-8 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
+                <MessageSquare className="h-8 w-8 text-white fill-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                  Chat with Your Placement Mentor
+                </h1>
+                <p className="text-blue-100 text-sm mt-1 font-medium">
+                  Get personalized guidance for interviews, resume tips, and career advice
+                </p>
+              </div>
+            </div>
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearHistory}
+                className="text-white hover:bg-white/20 text-xs border border-white/30"
+              >
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Clear
+              </Button>
+            )}
           </div>
-          <Button variant="outline" size="sm" onClick={clearHistory} className="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-200">
-            <Trash2 className="mr-2 h-4 w-4 text-slate-400" />
-            Clear Chat
-          </Button>
-        </div>
 
-        <Card className="h-[72vh] flex flex-col bg-[#070b19] border-slate-800/80 shadow-2xl">
-          <CardHeader className="border-b border-slate-800/80 py-3.5 px-6 bg-[#0a0f24]">
-            <CardTitle className="text-base font-semibold flex items-center gap-2.5 text-slate-100">
-              <Bot className="h-5 w-5 text-blue-500" />
-              Career Counselor
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+          <CardContent className="p-0 flex flex-col h-[65vh]">
             <ScrollArea className="flex-1 p-6" ref={scrollRef}>
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-16">
-                  <div className="p-4 rounded-full bg-blue-950/40 border border-blue-900/40 text-blue-400">
-                    <MessageCircle className="h-10 w-10" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-lg text-slate-200">Start a conversation</p>
-                    <p className="text-sm text-slate-400 max-w-md mt-1">
-                      Ask me anything about career guidance, interview prep, technology recommendations, or placement strategies.
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-6 py-12">
+                  <div className="space-y-1">
+                    <p className="text-lg md:text-xl font-medium text-slate-700">
+                      👋 Hello! I&apos;m your AI Placement Mentor.
+                    </p>
+                    <p className="text-sm text-slate-500 font-medium">
+                      Ask me anything about:
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2.5 justify-center max-w-lg pt-4">
-                    {suggestions.map((s) => (
-                      <Button
-                        key={s}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs bg-slate-900/80 border-slate-800 hover:border-blue-500/50 hover:bg-blue-950/30 text-slate-300 transition-all"
-                        onClick={() => sendChatMessage(s)}
-                      >
-                        {s}
-                      </Button>
-                    ))}
+
+                  {/* 4 Colored Action Chips from Screenshot */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg w-full px-4">
+                    <button
+                      onClick={() => sendChatMessage("Resume tips")}
+                      className="flex items-center gap-2.5 px-4 py-3.5 rounded-lg bg-[#edf4ff] hover:bg-[#dbe9fe] text-[#1e40af] font-medium text-sm transition-all text-left shadow-sm"
+                    >
+                      <span>📝</span>
+                      <span>Resume tips</span>
+                    </button>
+
+                    <button
+                      onClick={() => sendChatMessage("Interview prep")}
+                      className="flex items-center gap-2.5 px-4 py-3.5 rounded-lg bg-[#edf7ed] hover:bg-[#d8edd8] text-[#166534] font-medium text-sm transition-all text-left shadow-sm"
+                    >
+                      <span>💼</span>
+                      <span>Interview prep</span>
+                    </button>
+
+                    <button
+                      onClick={() => sendChatMessage("Career guidance")}
+                      className="flex items-center gap-2.5 px-4 py-3.5 rounded-lg bg-[#f7edf9] hover:bg-[#ebd3f5] text-[#6b21a8] font-medium text-sm transition-all text-left shadow-sm"
+                    >
+                      <span>🎯</span>
+                      <span>Career guidance</span>
+                    </button>
+
+                    <button
+                      onClick={() => sendChatMessage("Skill development")}
+                      className="flex items-center gap-2.5 px-4 py-3.5 rounded-lg bg-[#fefce8] hover:bg-[#fef08a] text-[#854d0e] font-medium text-sm transition-all text-left shadow-sm"
+                    >
+                      <span>💡</span>
+                      <span>Skill development</span>
+                    </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {messages.map((msg, i) => (
                     <div
                       key={i}
@@ -190,22 +219,22 @@ export default function CounselorPage() {
                       )}
                     >
                       {msg.role === "assistant" && (
-                        <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                        <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-blue-600 text-white font-bold text-xs">
                           <Bot className="h-4 w-4" />
                         </div>
                       )}
                       <div
                         className={cn(
-                          "rounded-xl px-5 py-3.5 max-w-[85%] text-slate-100 shadow-md leading-relaxed",
+                          "rounded-2xl px-5 py-3.5 max-w-[85%] text-slate-800 shadow-sm leading-relaxed",
                           msg.role === "user"
                             ? "bg-blue-600 text-white font-medium"
-                            : "bg-[#0f172a] border border-slate-800 text-slate-200"
+                            : "bg-slate-100 border border-slate-200"
                         )}
                       >
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                       </div>
                       {msg.role === "user" && (
-                        <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-slate-800 text-white font-bold text-xs">
                           <User className="h-4 w-4" />
                         </div>
                       )}
@@ -213,11 +242,11 @@ export default function CounselorPage() {
                   ))}
                   {sending && (
                     <div className="flex gap-3 justify-start items-center">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
                         <Bot className="h-4 w-4" />
                       </div>
-                      <div className="rounded-xl px-5 py-3.5 bg-[#0f172a] border border-slate-800 text-slate-400">
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                      <div className="rounded-2xl px-5 py-3.5 bg-slate-100 border border-slate-200 text-slate-500">
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
                       </div>
                     </div>
                   )}
@@ -225,20 +254,36 @@ export default function CounselorPage() {
               )}
             </ScrollArea>
 
-            <div className="border-t border-slate-800/80 p-4 bg-[#0a0f24]">
-              <form onSubmit={handleSubmit} className="flex gap-3">
-                <Input
-                  placeholder="Type your message..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  disabled={sending}
-                  className="bg-[#040714] border-slate-800 text-slate-100 placeholder:text-slate-500 focus-visible:ring-blue-500"
-                />
-                <Button type="submit" disabled={!input.trim() || sending} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5">
+            {/* Bottom Typing Bar */}
+            <div className="border-t border-slate-200 p-4 bg-white">
+              <form onSubmit={handleSubmit} className="flex items-center gap-3">
+                <div className="relative flex-1 flex items-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-2 text-slate-400 hover:text-slate-600"
+                    title="Attach file"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    placeholder="Type your message here..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    disabled={sending}
+                    className="pl-10 pr-4 py-5 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus-visible:ring-blue-500 rounded-lg text-sm"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={!input.trim() || sending}
+                  className="bg-[#94a3b8] hover:bg-blue-600 text-white font-semibold px-6 py-5 rounded-lg transition-all"
+                >
                   {sending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Send className="h-4 w-4" />
+                    "Send"
                   )}
                 </Button>
               </form>
@@ -249,10 +294,3 @@ export default function CounselorPage() {
     </DashboardLayout>
   );
 }
-
-const suggestions = [
-  "What skills should I learn for placement?",
-  "How should I prepare for HR interviews?",
-  "What are the best resources for DSA?",
-  "Resume tips for software engineer roles",
-];
