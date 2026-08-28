@@ -55,6 +55,18 @@ export default function CounselorPage() {
     setSending(true);
 
     try {
+      if (!api.getToken()) {
+        try {
+          const guestEmail = `guest_${Date.now()}_${Math.floor(Math.random()*1000)}@placementmentor.app`;
+          const regRes: any = await api.auth.register({ email: guestEmail, password: "GuestPassword123!", name: "Guest User" });
+          if (regRes?.token) {
+            api.setToken(regRes.token);
+          }
+        } catch {
+          // ignore auto-reg error
+        }
+      }
+
       const res: any = await api.counselor.sendMessage(userMsg.content);
       const assistantMsg: ChatMessage = {
         role: "assistant",
@@ -63,9 +75,12 @@ export default function CounselorPage() {
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err: any) {
+      const errorText = !api.getToken()
+        ? "Please login or register to use the AI Counselor."
+        : "Sorry, I encountered an error. Please try again.";
       const errorMsg: ChatMessage = {
         role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
+        content: errorText,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
