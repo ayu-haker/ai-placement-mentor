@@ -18,25 +18,18 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
       chatHistories.set(userId, []);
     }
 
-    const history = chatHistories.get(userId)!;
+    const history = chatHistories.get(userId) || [];
+    const validHistory = history.filter((msg) => msg.content && !msg.content.includes('error'));
 
-    history.push({
-      role: 'user',
-      content: message,
-      timestamp: new Date(),
-    });
+    const response = await groqService.chat(message, validHistory);
 
-    const response = await groqService.chat(message, history);
+    const updatedHistory = [
+      ...validHistory,
+      { role: 'user' as const, content: message, timestamp: new Date() },
+      { role: 'assistant' as const, content: response, timestamp: new Date() },
+    ];
 
-    history.push({
-      role: 'assistant',
-      content: response,
-      timestamp: new Date(),
-    });
-
-    if (history.length > 50) {
-      chatHistories.set(userId, history.slice(-40));
-    }
+    chatHistories.set(userId, updatedHistory.slice(-40));
 
     res.json({
       message: response,
