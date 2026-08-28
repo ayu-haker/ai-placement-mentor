@@ -4,11 +4,11 @@ WORKDIR /app
 
 RUN apk add --no-cache python3 make g++
 
-COPY backend/package*.json ./
+COPY package*.json ./
 RUN npm ci
 
-COPY backend/tsconfig.json ./
-COPY backend/src/ ./src/
+COPY tsconfig.json ./
+COPY src/ ./src/
 
 RUN npm run build
 
@@ -20,7 +20,7 @@ RUN apk add --no-cache curl && mkdir -p uploads
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY backend/package*.json ./
+COPY package*.json ./
 
 EXPOSE 5000
 
