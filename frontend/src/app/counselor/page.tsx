@@ -93,9 +93,10 @@ export default function CounselorPage() {
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err: any) {
       console.error("Counselor chat error:", err);
+      const errorText = err?.message || (typeof err === "string" ? err : JSON.stringify(err)) || "Sorry, I encountered an error. Please try again.";
       const errorMsg: ChatMessage = {
         role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
+        content: `Error: ${errorText}`,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
