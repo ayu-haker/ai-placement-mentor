@@ -58,9 +58,15 @@ export class GroqService {
     const fallbackAvail = models.some((m) => m.includes(this.fallbackModel));
     if (fallbackAvail) {
       console.log(`Falling back to Groq model "${this.fallbackModel}"`);
+      this.model = this.fallbackModel;
       return this.fallbackModel;
     }
-    console.warn('No configured model found on Groq, using default');
+    const textModel = models.find((m) => !m.includes('whisper') && !m.includes('guard'));
+    if (textModel) {
+      console.warn(`Configured model unavailable. Dynamic fallback to Groq model: "${textModel}"`);
+      this.model = textModel;
+      return textModel;
+    }
     return this.model;
   }
 
