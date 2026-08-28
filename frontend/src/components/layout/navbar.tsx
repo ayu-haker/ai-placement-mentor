@@ -11,8 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/store/authStore";
-import { useTheme } from "next-themes";
-import { Menu, Moon, Sun, LogOut, User } from "lucide-react";
+import { Menu, LogOut, User } from "lucide-react";
 import Link from "next/link";
 
 interface NavbarProps {
@@ -21,7 +20,6 @@ interface NavbarProps {
 
 export function Navbar({ onMenuClick }: NavbarProps) {
   const { user, logout } = useAuthStore();
-  const { theme, setTheme } = useTheme();
 
   const initials = user?.name
     ?.split(" ")
@@ -31,51 +29,41 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     .slice(0, 2);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
-      <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-800/80 bg-[#050817]/90 backdrop-blur-md px-4 lg:px-6">
+      <Button variant="ghost" size="icon" className="lg:hidden text-slate-400 hover:text-white" onClick={onMenuClick}>
         <Menu className="h-5 w-5" />
       </Button>
 
       <div className="flex-1" />
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      >
-        {theme === "dark" ? (
-          <Sun className="h-5 w-5" />
-        ) : (
-          <Moon className="h-5 w-5" />
-        )}
-      </Button>
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback>{initials || "U"}</AvatarFallback>
+          <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-slate-800 bg-slate-900/80 hover:bg-slate-800">
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="bg-blue-600/20 text-blue-400 font-bold text-xs">
+                {initials || "GU"}
+              </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuContent className="w-56 bg-[#070b19] border-slate-800 text-slate-200" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user?.name}</p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {user?.email}
+              <p className="text-sm font-medium leading-none text-white">{user?.name || "Guest User"}</p>
+              <p className="text-xs leading-none text-slate-400">
+                {user?.email || "guest@placementmentor.app"}
               </p>
             </div>
           </DropdownMenuLabel>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="bg-slate-800" />
           <Link href="/profile">
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
+            <DropdownMenuItem className="focus:bg-slate-900 focus:text-white cursor-pointer">
+              <User className="mr-2 h-4 w-4 text-blue-400" />
               Profile
             </DropdownMenuItem>
           </Link>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={logout}>
+          <DropdownMenuSeparator className="bg-slate-800" />
+          <DropdownMenuItem onClick={logout} className="focus:bg-slate-900 focus:text-red-400 cursor-pointer text-red-400">
             <LogOut className="mr-2 h-4 w-4" />
             Log out
           </DropdownMenuItem>
