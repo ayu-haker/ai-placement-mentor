@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
-import { Brain, Sparkles, Shield, Users } from "lucide-react";
+import { Brain, Sparkles, Shield, Users, ArrowRight, MessageCircle, Target, FileText } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -19,93 +19,117 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="flex h-screen items-center justify-center bg-[#030612]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
       </div>
     );
   }
 
-  if (isAuthenticated) return null;
-
   return (
-    <div className="min-h-screen">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2 font-bold text-xl">
-            <Brain className="h-6 w-6 text-primary" />
-            AI Placement Mentor
+    <div className="min-h-screen bg-[#030612] text-slate-100 flex flex-col justify-between selection:bg-blue-600/30">
+      {/* Header Navbar */}
+      <header className="border-b border-slate-800/80 bg-[#050817]/90 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-2.5 font-bold text-xl text-white">
+            <div className="p-1.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30">
+              <Brain className="h-5 w-5" />
+            </div>
+            <span>AI Placement Mentor</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/auth/login">
-              <Button variant="outline">Login</Button>
+              <Button variant="outline" className="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-200 text-sm">
+                Login
+              </Button>
             </Link>
-            <Link href="/auth/register">
-              <Button>Get Started</Button>
+            <Link href="/dashboard">
+              <Button className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm">
+                Get Started
+              </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <section className="container mx-auto px-4 py-24 text-center">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <h1 className="text-5xl font-bold tracking-tight">
+      {/* Main Hero Section */}
+      <main className="flex-1 flex flex-col justify-center">
+        <section className="max-w-5xl mx-auto px-6 py-20 text-center space-y-8">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/60 border border-blue-900/60 text-blue-400 text-xs font-semibold tracking-wide uppercase">
+            <Sparkles className="h-3.5 w-3.5" /> Next-Gen Placement Preparation
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
             Your AI-Powered{" "}
-            <span className="text-primary">Placement Mentor</span>
+            <span className="text-blue-500">Placement Mentor</span>
           </h1>
-          <p className="text-xl text-muted-foreground">
-            Master your placement preparation with AI-driven resume analysis,
-            mock interviews, skill gap analysis, and personalized career roadmaps.
+
+          <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
+            Master your placement preparation with AI-driven resume analysis, mock interviews,
+            skill gap analysis, and personalized career roadmaps.
           </p>
-          <div className="flex justify-center gap-4">
-            <Link href="/auth/register">
-              <Button size="lg" className="text-lg">
+
+          <div className="flex flex-wrap justify-center gap-4 pt-4">
+            <Link href="/dashboard">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-base px-8 py-6 rounded-xl shadow-lg shadow-blue-600/20">
                 Start Your Journey
                 <Sparkles className="ml-2 h-5 w-5" />
               </Button>
             </Link>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="container mx-auto px-4 py-16">
-        <div className="grid gap-8 md:grid-cols-3">
-          {features.map((feature, i) => (
-            <div
-              key={i}
-              className="rounded-lg border p-6 text-center space-y-3 hover:shadow-lg transition-shadow"
-            >
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <feature.icon className="h-6 w-6 text-primary" />
+        {/* Feature Cards Section */}
+        <section className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid gap-6 md:grid-cols-3">
+            <Link href="/resume-analyzer">
+              <div className="rounded-xl border border-slate-800/80 bg-[#070b19] p-8 space-y-4 hover:border-blue-500/50 hover:bg-[#0a0f24] transition-all cursor-pointer group">
+                <div className="h-12 w-12 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors">
+                  Smart Resume Analysis
+                </h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Get ATS score, keyword analysis, and actionable suggestions to improve your resume.
+                </p>
               </div>
-              <h3 className="font-semibold text-lg">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+            </Link>
+
+            <Link href="/mock-interview">
+              <div className="rounded-xl border border-slate-800/80 bg-[#070b19] p-8 space-y-4 hover:border-blue-500/50 hover:bg-[#0a0f24] transition-all cursor-pointer group">
+                <div className="h-12 w-12 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+                  <Users className="h-6 w-6" />
+                </div>
+                <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors">
+                  AI Mock Interviews
+                </h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Practice HR and technical interview questions with real-time AI feedback and scoring.
+                </p>
+              </div>
+            </Link>
+
+            <Link href="/roadmap">
+              <div className="rounded-xl border border-slate-800/80 bg-[#070b19] p-8 space-y-4 hover:border-blue-500/50 hover:bg-[#0a0f24] transition-all cursor-pointer group">
+                <div className="h-12 w-12 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+                  <Sparkles className="h-6 w-6" />
+                </div>
+                <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors">
+                  Career Roadmap
+                </h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Follow a customized week-by-week learning plan tailored to your target job role.
+                </p>
+              </div>
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
+        © 2026 AI Placement Mentor. All rights reserved.
+      </footer>
     </div>
   );
 }
-
-const features = [
-  {
-    title: "Smart Resume Analysis",
-    description:
-      "Get ATS score, keyword analysis, and actionable suggestions to improve your resume.",
-    icon: Shield,
-  },
-  {
-    title: "AI Mock Interviews",
-    description:
-      "Practice with AI-generated HR and technical interview questions with instant feedback.",
-    icon: Users,
-  },
-  {
-    title: "Career Roadmap",
-    description:
-      "Personalized learning path with skill gap analysis and resource recommendations.",
-    icon: Sparkles,
-  },
-];
