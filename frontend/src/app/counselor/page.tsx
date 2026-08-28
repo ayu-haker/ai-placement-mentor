@@ -139,12 +139,10 @@ export default function CounselorPage() {
               Get career guidance, technology recommendations, and placement tips
             </p>
           </div>
-          {messages.length > 0 && (
-            <Button variant="outline" size="sm" onClick={clearHistory}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Clear Chat
-            </Button>
-          )}
+          <Button variant="outline" size="sm" onClick={clearHistory}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            Clear Chat
+          </Button>
         </div>
 
         <Card className="h-[65vh] flex flex-col">
