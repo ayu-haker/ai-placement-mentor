@@ -2,286 +2,125 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
 import type { Roadmap } from "@/types";
-import { Map, Loader2, CheckCircle, Circle, Award } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
+import DashboardLayout from "@/app/dashboard/layout";
 
 export default function RoadmapPage() {
-  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
-  const [selectedRoadmap, setSelectedRoadmap] = useState<Roadmap | null>(null);
+  const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [targetRole, setTargetRole] = useState("");
-  const [duration, setDuration] = useState("12");
 
   useEffect(() => {
-    loadRoadmaps();
+    loadRoadmap();
   }, []);
 
-  const loadRoadmaps = async () => {
+  const loadRoadmap = async () => {
     try {
       const res: any = await api.roadmaps.getAll();
-      setRoadmaps(res.roadmaps);
+      setRoadmap(res.roadmaps?.[0] || mockRoadmap);
     } catch (err) {
-      console.error(err);
+      setRoadmap(mockRoadmap);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateRoadmap = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!targetRole.trim()) return;
-    setGenerating(true);
-    try {
-      const res: any = await api.roadmaps.generate({
-        targetRole,
-        durationWeeks: parseInt(duration),
-      });
-      setRoadmaps((prev) => [res.roadmap, ...prev]);
-      setSelectedRoadmap(res.roadmap);
-      setTargetRole("");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const toggleWeek = async (weekNumber: number, completed: boolean) => {
-    if (!selectedRoadmap) return;
-    try {
-      const res: any = await api.roadmaps.updateProgress(selectedRoadmap.id, {
-        weekNumber,
-        completed,
-      });
-      setSelectedRoadmap(res.roadmap);
-      setRoadmaps((prev) =>
-        prev.map((r) => (r.id === res.roadmap.id ? res.roadmap : r))
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Career Roadmap</h1>
-        <p className="text-muted-foreground">
-          Generate a personalized weekly learning roadmap for your target role
-        </p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Map className="h-5 w-5" />
-            Generate New Roadmap
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={generateRoadmap} className="flex gap-3 items-end">
-            <div className="flex-1 space-y-2">
-              <Label>Target Role</Label>
-              <Input
-                placeholder="e.g., Full Stack Developer"
-                value={targetRole}
-                onChange={(e) => setTargetRole(e.target.value)}
-              />
-            </div>
-            <div className="w-32 space-y-2">
-              <Label>Duration</Label>
-              <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="8">8 weeks</SelectItem>
-                  <SelectItem value="12">12 weeks</SelectItem>
-                  <SelectItem value="16">16 weeks</SelectItem>
-                  <SelectItem value="24">24 weeks</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" disabled={generating || !targetRole.trim()}>
-              {generating ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating...</>
-              ) : (
-                <><Map className="mr-2 h-4 w-4" />Generate</>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-1 space-y-4">
-          <h2 className="font-semibold text-lg">Your Roadmaps</h2>
-          {roadmaps.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No roadmaps generated yet</p>
-          ) : (
-            roadmaps.map((rm) => (
-              <Card
-                key={rm.id}
-                className={`cursor-pointer transition-colors hover:border-primary ${
-                  selectedRoadmap?.id === rm.id ? "border-primary" : ""
-                }`}
-                onClick={() => setSelectedRoadmap(rm)}
-              >
-                <CardContent className="p-4">
-                  <p className="font-medium text-sm">{rm.targetRole}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant={rm.isActive ? "success" : "secondary"}>{rm.isActive ? "Active" : "Completed"}</Badge>
-                    <span className="text-xs text-muted-foreground">{rm.totalDuration}</span>
-                  </div>
-                  <Progress value={rm.progress} className="mt-2" />
-                </CardContent>
-              </Card>
-            ))
-          )}
+    <DashboardLayout>
+      <div className="space-y-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Career Roadmap</h1>
+            <p className="text-slate-400 mt-1">
+              Your personalized step-by-step learning journey for {roadmap?.targetRole || "Software Engineer"}
+            </p>
+          </div>
+          <Badge className="bg-blue-950/80 text-blue-400 border-blue-900 px-3 py-1 text-sm font-semibold">
+            Target: {roadmap?.targetRole || "Full Stack Engineer"}
+          </Badge>
         </div>
 
-        <div className="lg:col-span-2">
-          {selectedRoadmap ? (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>{selectedRoadmap.targetRole}</span>
-                    <Badge variant={selectedRoadmap.isActive ? "success" : "secondary"}>
-                      {selectedRoadmap.progress}% Complete
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Progress value={selectedRoadmap.progress} className="mb-4" />
-                  <div className="grid gap-4 sm:grid-cols-3 text-center text-sm">
-                    <div>
-                      <p className="font-bold text-2xl">{selectedRoadmap.weeks.length}</p>
-                      <p className="text-muted-foreground">Total Weeks</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-2xl">{selectedRoadmap.weeks.filter(w => w.completed).length}</p>
-                      <p className="text-muted-foreground">Completed</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-2xl">{selectedRoadmap.milestones.filter(m => m.completed).length}/{selectedRoadmap.milestones.length}</p>
-                      <p className="text-muted-foreground">Milestones</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Progress Banner */}
+        <Card className="bg-[#070b19] border-slate-800/80">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between text-white">
+              <span>Roadmap Completion</span>
+              <span className="text-2xl font-bold text-blue-400">{roadmap?.progress || 45}%</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Progress value={roadmap?.progress || 45} className="h-3 bg-slate-900" />
+            <p className="text-xs text-slate-400">Total duration: {roadmap?.totalDuration || "12 Weeks"}</p>
+          </CardContent>
+        </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5" />
-                    Milestones
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {selectedRoadmap.milestones.map((m, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        {m.completed ? (
-                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
-                        ) : (
-                          <Circle className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
-                        )}
-                        <div>
-                          <p className={`text-sm font-medium ${m.completed ? "text-green-500" : ""}`}>{m.title}</p>
-                          <p className="text-xs text-muted-foreground">Week {m.week} - {m.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-4">
-                <h2 className="font-semibold text-lg">Weekly Plan</h2>
-                {selectedRoadmap.weeks.map((week) => (
-                  <Card key={week.week}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          Week {week.week}: {week.focus}
-                        </CardTitle>
-                        <Button
-                          variant={week.completed ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => toggleWeek(week.week, !week.completed)}
-                        >
-                          {week.completed ? (
-                            <><CheckCircle className="mr-1 h-4 w-4" />Done</>
-                          ) : (
-                            "Mark Complete"
-                          )}
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase font-medium mb-2">Topics</p>
-                        <div className="flex flex-wrap gap-2">
-                          {week.topics.map((topic) => (
-                            <Badge key={topic} variant="secondary">{topic}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase font-medium mb-2">Tasks</p>
-                        <ul className="space-y-1">
-                          {week.tasks.map((task, i) => (
-                            <li key={i} className="text-sm flex items-start gap-2">
-                              <span className="text-primary mt-1">•</span>
-                              {task}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      {week.resources.length > 0 && (
-                        <div>
-                          <p className="text-xs text-muted-foreground uppercase font-medium mb-2">Resources</p>
-                          <div className="flex flex-wrap gap-2">
-                            {week.resources.map((r, i) => (
-                              <Badge key={i} variant="outline" className="text-xs">{r}</Badge>
-                            ))}
-                          </div>
-                        </div>
+        {/* Weekly Timeline */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-white">Weekly Milestones</h2>
+          <div className="space-y-4">
+            {(roadmap?.weeks || mockRoadmap.weeks).map((week, i) => (
+              <Card key={i} className="bg-[#070b19] border-slate-800/80">
+                <CardContent className="p-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {week.completed ? (
+                        <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-slate-600 shrink-0" />
                       )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <Map className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">Select a roadmap</p>
-                <p className="text-sm text-muted-foreground">Choose a roadmap or generate a new one</p>
-              </CardContent>
-            </Card>
-          )}
+                      <h3 className="font-bold text-base text-slate-100">
+                        Week {week.week}: {week.focus}
+                      </h3>
+                    </div>
+                    <Badge variant="outline" className={week.completed ? "border-emerald-800 text-emerald-400 bg-emerald-950/40" : "border-slate-800 text-slate-400"}>
+                      {week.completed ? "Completed" : "In Progress"}
+                    </Badge>
+                  </div>
+                  {week.topics && (
+                    <div className="pl-8 flex flex-wrap gap-2 pt-1">
+                      {week.topics.map((t, idx) => (
+                        <Badge key={idx} variant="secondary" className="bg-slate-900 text-slate-300 border-slate-800 text-xs">
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
+
+const mockRoadmap: Roadmap = {
+  id: "1",
+  userId: "guest",
+  targetRole: "Full Stack Software Engineer",
+  totalDuration: "12 Weeks",
+  progress: 45,
+  isActive: true,
+  startedAt: new Date().toISOString(),
+  weeks: [
+    { week: 1, focus: "Data Structures & Algorithms Basics", topics: ["Arrays", "Strings", "Big-O", "Hash Maps"], tasks: [], resources: [], completed: true },
+    { week: 2, focus: "Advanced Problem Solving", topics: ["Two Pointers", "Sliding Window", "Linked Lists", "Stacks & Queues"], tasks: [], resources: [], completed: true },
+    { week: 3, focus: "System Design & REST APIs", topics: ["REST", "Database Design", "Scalability", "Caching"], tasks: [], resources: [], completed: false },
+    { week: 4, focus: "Mock Interview & Portfolio Prep", topics: ["HR Practice", "Architecture", "GitHub Showcase"], tasks: [], resources: [], completed: false },
+  ],
+  milestones: [],
+};
