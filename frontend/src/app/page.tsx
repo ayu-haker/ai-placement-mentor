@@ -1,21 +1,35 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
-import { Brain, Sparkles, Shield, Users, ArrowRight, MessageCircle, Target, FileText } from "lucide-react";
+import { Brain, Sparkles, Shield, Users, UserCheck, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuthStore();
+  const [guestLoading, setGuestLoading] = useState(false);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       router.push("/dashboard");
     }
   }, [isAuthenticated, isLoading, router]);
+
+  const handleGuestAccess = async () => {
+    setGuestLoading(true);
+    try {
+      const guestEmail = `guest_${Date.now()}_${Math.floor(Math.random() * 10000)}@placementmentor.app`;
+      await useAuthStore.getState().register(guestEmail, "GuestPassword123!", "Guest User");
+      router.push("/dashboard");
+    } catch {
+      router.push("/dashboard");
+    } finally {
+      setGuestLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -37,14 +51,17 @@ export default function Home() {
             <span>AI Placement Mentor</span>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={handleGuestAccess}
+              disabled={guestLoading}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2 px-4 rounded-lg shadow-md transition-all"
+            >
+              {guestLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <UserCheck className="h-3.5 w-3.5 mr-1.5" />}
+              Continue as Guest
+            </Button>
             <Link href="/auth/login">
-              <Button variant="outline" className="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-200 text-sm">
+              <Button variant="outline" className="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-200 text-xs">
                 Login
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm">
-                Get Started
               </Button>
             </Link>
           </div>
@@ -69,10 +86,20 @@ export default function Home() {
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 pt-4">
+            <Button
+              onClick={handleGuestAccess}
+              disabled={guestLoading}
+              size="lg"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-base px-8 py-6 rounded-xl shadow-lg shadow-emerald-600/20"
+            >
+              {guestLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <UserCheck className="mr-2 h-5 w-5" />}
+              Continue as Guest (No Login Required)
+            </Button>
+
             <Link href="/dashboard">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-base px-8 py-6 rounded-xl shadow-lg shadow-blue-600/20">
-                Start Your Journey
-                <Sparkles className="ml-2 h-5 w-5" />
+              <Button size="lg" variant="outline" className="border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-200 font-semibold text-base px-8 py-6 rounded-xl">
+                Explore Features
+                <Sparkles className="ml-2 h-5 w-5 text-blue-400" />
               </Button>
             </Link>
           </div>
