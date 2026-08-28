@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'placement-mentor-dev-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || '3e658210ccac2e2936bbdd651ff78f00';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 export interface JwtPayload {
