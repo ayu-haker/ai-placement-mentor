@@ -11,6 +11,8 @@ import { formatDate } from "@/lib/utils";
 import type { Resume } from "@/types";
 import { Upload, FileText, Trash2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
+import DashboardLayout from "@/app/dashboard/layout";
+
 export default function ResumeAnalyzerPage() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,18 +35,18 @@ export default function ResumeAnalyzerPage() {
   };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+    if (acceptedFiles.length === 0) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append("resume", file);
-
     try {
+      const file = acceptedFiles[0];
+      const formData = new FormData();
+      formData.append("resume", file);
+
       const res: any = await api.resumes.upload(formData);
       setResumes((prev) => [res.resume, ...prev]);
       setSelectedResume(res.resume);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
     } finally {
       setUploading(false);
@@ -54,8 +56,10 @@ export default function ResumeAnalyzerPage() {
   const handleDelete = async (id: string) => {
     try {
       await api.resumes.delete(id);
-      setResumes((prev) => prev.filter((r) => r.id !== id));
-      if (selectedResume?.id === id) setSelectedResume(null);
+      setResumes((prev) => prev.filter((r) => r.id !== id && (r as any)._id !== id));
+      if (selectedResume?.id === id || (selectedResume as any)?._id === id) {
+        setSelectedResume(null);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -73,13 +77,16 @@ export default function ResumeAnalyzerPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
+    <DashboardLayout>
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Resume Analyzer</h1>
@@ -300,5 +307,6 @@ export default function ResumeAnalyzerPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }
