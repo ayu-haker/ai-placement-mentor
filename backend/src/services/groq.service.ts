@@ -75,7 +75,8 @@ export class GroqService {
     userMessage: string,
     model?: string
   ): Promise<string> {
-    const activeModel = model || this.model;
+    const validatedModel = await this.ensureModelAvailable();
+    const activeModel = model || validatedModel;
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -144,7 +145,8 @@ export class GroqService {
     onChunk: (chunk: string) => void,
     model?: string
   ): Promise<string> {
-    const activeModel = model || this.model;
+    const validatedModel = await this.ensureModelAvailable();
+    const activeModel = model || validatedModel;
     let fullResponse = '';
 
     try {
