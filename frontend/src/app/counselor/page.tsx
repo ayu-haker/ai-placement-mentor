@@ -40,13 +40,12 @@ export default function CounselorPage() {
     }
   };
 
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || sending) return;
+  const sendChatMessage = async (text: string) => {
+    if (!text.trim() || sending) return;
 
     const userMsg: ChatMessage = {
       role: "user",
-      content: input,
+      content: text,
       timestamp: new Date().toISOString(),
     };
 
@@ -79,12 +78,11 @@ export default function CounselorPage() {
       await ensureValidToken();
       let res: any;
       try {
-        res = await api.counselor.sendMessage(userMsg.content);
+        res = await api.counselor.sendMessage(text);
       } catch (firstErr: any) {
-        // Clear token, fetch new guest token, and retry once
         api.clearToken();
         await ensureValidToken();
-        res = await api.counselor.sendMessage(userMsg.content);
+        res = await api.counselor.sendMessage(text);
       }
 
       const assistantMsg: ChatMessage = {
@@ -104,6 +102,11 @@ export default function CounselorPage() {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendChatMessage(input);
   };
 
   const clearHistory = async () => {
@@ -168,7 +171,7 @@ export default function CounselorPage() {
                         variant="outline"
                         size="sm"
                         className="text-xs"
-                        onClick={() => setInput(s)}
+                        onClick={() => sendChatMessage(s)}
                       >
                         {s}
                       </Button>
@@ -222,7 +225,7 @@ export default function CounselorPage() {
             </ScrollArea>
 
             <div className="border-t p-4">
-              <form onSubmit={sendMessage} className="flex gap-2">
+              <form onSubmit={handleSubmit} className="flex gap-2">
                 <Input
                   placeholder="Type your message..."
                   value={input}
