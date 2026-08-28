@@ -37,6 +37,9 @@ async function request<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearToken();
+    }
     const error = await response.json().catch(() => ({
       error: "An unexpected error occurred",
     }));
