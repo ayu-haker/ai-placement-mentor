@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import type { Resume } from "@/types";
-import { Upload, FileText, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
+import { Upload, FileText, Trash2, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
 import DashboardLayout from "@/app/dashboard/layout";
 
 export default function ResumeAnalyzerPage() {
@@ -17,6 +17,7 @@ export default function ResumeAnalyzerPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedResume, setSelectedResume] = useState<Resume | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadResumes();
@@ -25,7 +26,11 @@ export default function ResumeAnalyzerPage() {
   const loadResumes = async () => {
     try {
       const res: any = await api.resumes.getAll();
-      setResumes(res.resumes || []);
+      const loaded = res.resumes || [];
+      setResumes(loaded);
+      if (loaded.length > 0) {
+        setSelectedResume(loaded[0]);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -37,16 +42,20 @@ export default function ResumeAnalyzerPage() {
     if (acceptedFiles.length === 0) return;
 
     setUploading(true);
+    setUploadError(null);
     try {
       const file = acceptedFiles[0];
       const formData = new FormData();
       formData.append("resume", file);
 
       const res: any = await api.resumes.upload(formData);
-      setResumes((prev) => [res.resume, ...prev]);
-      setSelectedResume(res.resume);
-    } catch (err) {
-      console.error(err);
+      if (res?.resume) {
+        setResumes((prev) => [res.resume, ...prev]);
+        setSelectedResume(res.resume);
+      }
+    } catch (err: any) {
+      console.error("Resume upload error:", err);
+      setUploadError(err?.message || "Failed to upload resume. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -61,6 +70,7 @@ export default function ResumeAnalyzerPage() {
       }
     } catch (err) {
       console.error(err);
+      setResumes((prev) => prev.filter((r) => r.id !== id && (r as any)._id !== id));
     }
   };
 
@@ -69,6 +79,7 @@ export default function ResumeAnalyzerPage() {
     accept: {
       "application/pdf": [".pdf"],
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+      "text/plain": [".txt"],
     },
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024,
@@ -78,7 +89,7 @@ export default function ResumeAnalyzerPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
         </div>
       </DashboardLayout>
     );
@@ -94,6 +105,12 @@ export default function ResumeAnalyzerPage() {
           </p>
         </div>
 
+        {uploadError && (
+          <div className="p-4 rounded-lg bg-red-950/60 border border-red-900 text-red-300 text-sm">
+            {uploadError}
+          </div>
+        )}
+
         {/* Drag and Drop Zone */}
         <div
           {...getRootProps()}
@@ -106,20 +123,20 @@ export default function ResumeAnalyzerPage() {
           <input {...getInputProps()} />
           <div className="flex flex-col items-center justify-center space-y-3">
             <div className="p-4 rounded-full bg-blue-950/60 text-blue-400 border border-blue-900/60">
-              <Upload className="h-7 w-7" />
+              {uploading ? <Loader2 className="h-7 w-7 animate-spin text-blue-400" /> : <Upload className="h-7 w-7" />}
             </div>
             <div>
               <p className="font-semibold text-lg text-slate-200">
-                {uploading ? "Analyzing resume..." : "Drag & drop your resume here"}
+                {uploading ? "Uploading & Analyzing Resume with AI..." : "Drag & drop your resume here"}
               </p>
-              <p className="text-sm text-slate-400 mt-1">PDF or DOCX up to 5MB</p>
+              <p className="text-sm text-slate-400 mt-1">PDF, DOCX, or TXT up to 5MB</p>
             </div>
             <Button
               variant="outline"
               disabled={uploading}
               className="mt-2 bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-200"
             >
-              {uploading ? "Uploading..." : "Browse Files"}
+              {uploading ? "Analyzing..." : "Browse Files"}
             </Button>
           </div>
         </div>
@@ -145,7 +162,7 @@ export default function ResumeAnalyzerPage() {
                       key={rId}
                       className={`cursor-pointer transition-all ${
                         isSelected
-                          ? "border-blue-500 bg-blue-950/30"
+                          ? "border-blue-500 bg-blue-950/30 shadow-md"
                           : "bg-[#070b19] border-slate-800/80 hover:border-slate-700"
                       }`}
                       onClick={() => setSelectedResume(resume)}
