@@ -1,22 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { api } from "@/lib/api";
 import type { ChatMessage } from "@/types";
-import { MessageCircle, Send, Loader2, Trash2, Bot, User } from "lucide-react";
+import { Bot, User, Send, Trash2, Loader2, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import DashboardLayout from "@/app/dashboard/layout";
 
 export default function CounselorPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,7 +26,7 @@ export default function CounselorPage() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, sending]);
 
   const loadHistory = async () => {
     try {
@@ -116,6 +115,7 @@ export default function CounselorPage() {
       setMessages([]);
     } catch (err) {
       console.error(err);
+      setMessages([]);
     }
   };
 
@@ -131,43 +131,47 @@ export default function CounselorPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">AI Career Counselor</h1>
-          <p className="text-muted-foreground">
-            Get career guidance, technology recommendations, and placement tips
-          </p>
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">AI Career Counselor</h1>
+            <p className="text-slate-400 mt-1">
+              Get career guidance, technology recommendations, and placement tips
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={clearHistory} className="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-200">
+            <Trash2 className="mr-2 h-4 w-4 text-slate-400" />
+            Clear Chat
+          </Button>
         </div>
 
-        <Card className="h-[65vh] flex flex-col">
-          <CardHeader className="border-b pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Bot className="h-5 w-5 text-primary" />
+        <Card className="h-[72vh] flex flex-col bg-[#070b19] border-slate-800/80 shadow-2xl">
+          <CardHeader className="border-b border-slate-800/80 py-3.5 px-6 bg-[#0a0f24]">
+            <CardTitle className="text-base font-semibold flex items-center gap-2.5 text-slate-100">
+              <Bot className="h-5 w-5 text-blue-500" />
               Career Counselor
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={clearHistory}>
-              <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-              Clear Chat
-            </Button>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col p-0">
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+            <ScrollArea className="flex-1 p-6" ref={scrollRef}>
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
-                  <MessageCircle className="h-12 w-12 text-muted-foreground" />
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-16">
+                  <div className="p-4 rounded-full bg-blue-950/40 border border-blue-900/40 text-blue-400">
+                    <MessageCircle className="h-10 w-10" />
+                  </div>
                   <div>
-                    <p className="font-medium">Start a conversation</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-semibold text-lg text-slate-200">Start a conversation</p>
+                    <p className="text-sm text-slate-400 max-w-md mt-1">
                       Ask me anything about career guidance, interview prep, technology recommendations, or placement strategies.
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2 justify-center max-w-md pt-2">
+                  <div className="flex flex-wrap gap-2.5 justify-center max-w-lg pt-4">
                     {suggestions.map((s) => (
                       <Button
                         key={s}
                         variant="outline"
                         size="sm"
-                        className="text-xs"
+                        className="text-xs bg-slate-900/80 border-slate-800 hover:border-blue-500/50 hover:bg-blue-950/30 text-slate-300 transition-all"
                         onClick={() => sendChatMessage(s)}
                       >
                         {s}
@@ -176,44 +180,44 @@ export default function CounselorPage() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {messages.map((msg, i) => (
                     <div
                       key={i}
                       className={cn(
-                        "flex gap-3 text-sm",
+                        "flex gap-3 text-sm items-start",
                         msg.role === "user" ? "justify-end" : "justify-start"
                       )}
                     >
                       {msg.role === "assistant" && (
-                        <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
                           <Bot className="h-4 w-4" />
                         </div>
                       )}
                       <div
                         className={cn(
-                          "rounded-lg px-4 py-2.5 max-w-[80%]",
+                          "rounded-xl px-5 py-3.5 max-w-[85%] text-slate-100 shadow-md leading-relaxed",
                           msg.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            ? "bg-blue-600 text-white font-medium"
+                            : "bg-[#0f172a] border border-slate-800 text-slate-200"
                         )}
                       >
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                       </div>
                       {msg.role === "user" && (
-                        <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-muted">
+                        <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
                           <User className="h-4 w-4" />
                         </div>
                       )}
                     </div>
                   ))}
                   {sending && (
-                    <div className="flex gap-3 justify-start">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Bot className="h-4 w-4 text-primary" />
+                    <div className="flex gap-3 justify-start items-center">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                        <Bot className="h-4 w-4" />
                       </div>
-                      <div className="rounded-lg px-4 py-2 bg-muted">
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                      <div className="rounded-xl px-5 py-3.5 bg-[#0f172a] border border-slate-800 text-slate-400">
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
                       </div>
                     </div>
                   )}
@@ -221,25 +225,16 @@ export default function CounselorPage() {
               )}
             </ScrollArea>
 
-            <div className="border-t p-4 flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="text-destructive hover:bg-destructive/10 shrink-0"
-                title="Clear Chat History"
-                onClick={clearHistory}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <form onSubmit={handleSubmit} className="flex flex-1 gap-2">
+            <div className="border-t border-slate-800/80 p-4 bg-[#0a0f24]">
+              <form onSubmit={handleSubmit} className="flex gap-3">
                 <Input
                   placeholder="Type your message..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   disabled={sending}
+                  className="bg-[#040714] border-slate-800 text-slate-100 placeholder:text-slate-500 focus-visible:ring-blue-500"
                 />
-                <Button type="submit" disabled={!input.trim() || sending}>
+                <Button type="submit" disabled={!input.trim() || sending} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5">
                   {sending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -259,6 +254,5 @@ const suggestions = [
   "What skills should I learn for placement?",
   "How should I prepare for HR interviews?",
   "What are the best resources for DSA?",
-  "How to improve my resume?",
-  "Which technology should I specialize in?",
+  "Resume tips for software engineer roles",
 ];
