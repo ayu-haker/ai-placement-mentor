@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import type { Roadmap, RoadmapWeek } from "@/types";
-import { CheckCircle2, Circle, Sparkles, Loader2, Target, BookOpen, Layers, CheckSquare } from "lucide-react";
+import { CheckCircle2, Circle, Sparkles, Loader2, Target, BookOpen, Layers, CheckSquare, RefreshCw, Compass } from "lucide-react";
 import DashboardLayout from "@/app/dashboard/layout";
 
 export default function RoadmapPage() {
@@ -16,6 +16,7 @@ export default function RoadmapPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [targetRole, setTargetRole] = useState("");
+  const [hasChosenRole, setHasChosenRole] = useState(false);
 
   useEffect(() => {
     loadRoadmap();
@@ -24,13 +25,14 @@ export default function RoadmapPage() {
   const loadRoadmap = async () => {
     try {
       const res: any = await api.roadmaps.getAll();
-      if (res?.roadmaps && res.roadmaps.length > 0) {
+      if (res?.roadmaps && res.roadmaps.length > 0 && res.roadmaps[0].targetRole && !res.roadmaps[0].id.includes("default")) {
         setRoadmap(res.roadmaps[0]);
+        setHasChosenRole(true);
       } else {
-        setRoadmap(mockRoadmap);
+        setHasChosenRole(false);
       }
     } catch {
-      setRoadmap(mockRoadmap);
+      setHasChosenRole(false);
     } finally {
       setLoading(false);
     }
@@ -48,6 +50,7 @@ export default function RoadmapPage() {
       });
       if (res?.roadmap) {
         setRoadmap(res.roadmap);
+        setHasChosenRole(true);
       }
     } catch (err) {
       console.error(err);
@@ -97,86 +100,130 @@ export default function RoadmapPage() {
     );
   }
 
+  // ENTRY STEP: Require user to select/type target career role FIRST!
+  if (!hasChosenRole || !roadmap) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-3xl mx-auto py-10 px-4 space-y-6">
+          <Card className="bg-[#070b19] border-slate-800/80 shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white text-center space-y-2">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3">
+                <Compass className="h-8 w-8 text-white fill-white/20" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                Select Your Target Career Path
+              </h1>
+              <p className="text-blue-100 text-sm max-w-lg mx-auto font-medium">
+                Before generating your roadmap, tell us what role you want to achieve for your placements!
+              </p>
+            </div>
+
+            <CardContent className="p-8 space-y-6">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleGenerate();
+                }}
+                className="space-y-4"
+              >
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-300">
+                    Type Your Desired Career / Job Role:
+                  </label>
+                  <Input
+                    placeholder="e.g., DevOps Engineer, Full Stack Web Developer, Data Scientist..."
+                    value={targetRole}
+                    onChange={(e) => setTargetRole(e.target.value)}
+                    className="bg-[#040714] border-slate-800 text-slate-100 placeholder:text-slate-500 py-6 text-base focus-visible:ring-blue-500"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={!targetRole.trim() || generating}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-base py-6 shadow-lg shadow-blue-600/20"
+                >
+                  {generating ? (
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  ) : (
+                    <Sparkles className="h-5 w-5 mr-2 text-blue-200" />
+                  )}
+                  {generating ? "Building Your Personalized AI Roadmap..." : "Start My Career Roadmap Journey 🚀"}
+                </Button>
+              </form>
+
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-800" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-[#070b19] px-3 text-slate-500 font-semibold">Or Pick a Popular Track</span>
+                </div>
+              </div>
+
+              {/* Popular Role Selection Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { title: "Full Stack Web Developer", icon: "🚀", desc: "React, Node.js, Next.js, Databases & REST APIs" },
+                  { title: "DevOps & Cloud Engineer", icon: "⚙️", desc: "Docker, Kubernetes, AWS, CI/CD & Automation" },
+                  { title: "Data Scientist / Analyst", icon: "📊", desc: "Python, SQL, Machine Learning & Statistics" },
+                  { title: "Java Backend Engineer", icon: "☕", desc: "Java, Spring Boot, Microservices & PostgreSQL" },
+                  { title: "AI / ML Engineer", icon: "🤖", desc: "PyTorch, LLMs, LangChain & Model Deployment" },
+                  { title: "Cybersecurity Analyst", icon: "🔐", desc: "Network Security, Ethical Hacking & OWASP" },
+                ].map((item) => (
+                  <button
+                    key={item.title}
+                    type="button"
+                    onClick={() => {
+                      setTargetRole(item.title);
+                      handleGenerate(item.title);
+                    }}
+                    className="flex flex-col text-left p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-blue-500/50 hover:bg-slate-900 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2 font-bold text-sm text-slate-100 group-hover:text-blue-400 transition-colors">
+                      <span className="text-lg">{item.icon}</span>
+                      <span>{item.title}</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // MAIN ROADMAP VIEW: Shows after user selects their target career
   return (
     <DashboardLayout>
       <div className="space-y-8 max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header with Change Career option */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Interactive AI Career Roadmap</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Career Roadmap</h1>
             <p className="text-slate-400 mt-1">
-              Personalized week-by-week learning goals & milestone tracking for {roadmap?.targetRole || "Software Engineer"}
+              Personalized week-by-week learning goals & milestone tracking for <span className="text-blue-400 font-semibold">{roadmap.targetRole}</span>
             </p>
           </div>
-          <Badge className="bg-blue-950/80 text-blue-400 border-blue-900 px-3.5 py-1.5 text-sm font-semibold self-start md:self-auto">
-            Target: {roadmap?.targetRole || "Full Stack Engineer"}
-          </Badge>
-        </div>
-
-        {/* AI Custom Role Generator Card */}
-        <Card className="bg-[#070b19] border-slate-800/80 shadow-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2 text-white">
-              <Sparkles className="h-5 w-5 text-blue-400" />
-              Generate Custom AI Roadmap for Any Target Role
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleGenerate();
-              }}
-              className="flex flex-col sm:flex-row gap-3"
+          <div className="flex items-center gap-3">
+            <Badge className="bg-blue-950/80 text-blue-400 border-blue-900 px-3.5 py-1.5 text-sm font-semibold">
+              Target: {roadmap.targetRole}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setHasChosenRole(false)}
+              className="border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 text-xs"
             >
-              <Input
-                placeholder="Enter target role e.g., DevOps Engineer, Data Scientist, AI Engineer, Full Stack..."
-                value={targetRole}
-                onChange={(e) => setTargetRole(e.target.value)}
-                className="bg-[#040714] border-slate-800 text-slate-100 placeholder:text-slate-500 flex-1 py-5 focus-visible:ring-blue-500"
-              />
-              <Button
-                type="submit"
-                disabled={!targetRole.trim() || generating}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-5 px-6 shrink-0"
-              >
-                {generating ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Sparkles className="h-4 w-4 mr-2" />
-                )}
-                {generating ? "Generating AI Plan..." : "Generate AI Roadmap"}
-              </Button>
-            </form>
-
-            {/* Target Role Quick Preset Chips */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="text-xs text-slate-500 font-semibold mr-1">Popular Roles:</span>
-              {[
-                "🚀 Full Stack Developer",
-                "⚙️ DevOps Engineer",
-                "📊 Data Scientist",
-                "🤖 AI/ML Engineer",
-                "🔐 Cybersecurity Analyst",
-              ].map((roleChip) => {
-                const cleanRole = roleChip.replace(/^[^\s]+\s*/, "");
-                return (
-                  <button
-                    key={roleChip}
-                    type="button"
-                    onClick={() => {
-                      setTargetRole(cleanRole);
-                      handleGenerate(cleanRole);
-                    }}
-                    className="text-xs px-3 py-1.5 rounded-full bg-slate-900 hover:bg-blue-950/60 hover:text-blue-300 text-slate-300 border border-slate-800 transition-all"
-                  >
-                    {roleChip}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+              Change Target Career
+            </Button>
+          </div>
+        </div>
 
         {/* Progress Banner */}
         <Card className="bg-[#070b19] border-slate-800/80 shadow-md">
@@ -187,17 +234,17 @@ export default function RoadmapPage() {
                 Overall Learning Progress
               </span>
               <span className="text-2xl font-extrabold text-blue-400">
-                {roadmap?.progress || 0}%
+                {roadmap.progress || 0}%
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Progress value={roadmap?.progress || 0} className="h-3 bg-slate-900" />
+            <Progress value={roadmap.progress || 0} className="h-3 bg-slate-900" />
             <div className="flex justify-between text-xs text-slate-400">
-              <span>Duration: {roadmap?.totalDuration || "8 Weeks"}</span>
+              <span>Duration: {roadmap.totalDuration || "8 Weeks"}</span>
               <span>
-                {roadmap?.weeks?.filter((w) => w.completed).length || 0} of{" "}
-                {roadmap?.weeks?.length || 8} weeks completed
+                {roadmap.weeks?.filter((w) => w.completed).length || 0} of{" "}
+                {roadmap.weeks?.length || 8} weeks completed
               </span>
             </div>
           </CardContent>
@@ -208,7 +255,7 @@ export default function RoadmapPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Layers className="h-5 w-5 text-blue-400" />
-              Week-by-Week Learning Roadmap
+              Week-by-Week Learning Roadmap for {roadmap.targetRole}
             </h2>
             <span className="text-xs text-slate-400 font-medium">
               💡 Click any week checkbox to mark it complete!
@@ -216,7 +263,7 @@ export default function RoadmapPage() {
           </div>
 
           <div className="space-y-4">
-            {(roadmap?.weeks || mockRoadmap.weeks).map((week: RoadmapWeek, i: number) => (
+            {roadmap.weeks.map((week: RoadmapWeek, i: number) => (
               <Card
                 key={i}
                 className={`bg-[#070b19] border transition-all ${
@@ -306,24 +353,3 @@ export default function RoadmapPage() {
     </DashboardLayout>
   );
 }
-
-const mockRoadmap: Roadmap = {
-  id: "1",
-  userId: "guest",
-  targetRole: "Full Stack Software Engineer",
-  totalDuration: "8 Weeks",
-  progress: 38,
-  isActive: true,
-  startedAt: new Date().toISOString(),
-  weeks: [
-    { week: 1, focus: "Data Structures & Algorithms Basics", topics: ["Arrays", "Strings", "Big-O Notation", "Hash Maps"], tasks: ["Solve 10 LeetCode Easy problems", "Understand Time & Space complexity"], resources: ["LeetCode"], completed: true },
-    { week: 2, focus: "Advanced Problem Solving & Pointers", topics: ["Two Pointers", "Sliding Window", "Linked Lists", "Stacks & Queues"], tasks: ["Implement Custom LinkedList", "Solve 5 Medium questions"], resources: ["GeeksforGeeks"], completed: true },
-    { week: 3, focus: "System Design & REST API Architecture", topics: ["REST Principles", "Database Design", "Scalability", "Redis Caching"], tasks: ["Design RESTful API for E-commerce"], resources: ["MDN Web Docs"], completed: true },
-    { week: 4, focus: "Database Persistence & Relational Schema", topics: ["PostgreSQL", "MongoDB", "Indexing", "ORMs"], tasks: ["Write SQL queries and indexes"], resources: ["Postgres Tutorial"], completed: false },
-    { week: 5, focus: "Authentication, JWT & Security", topics: ["JWT Tokens", "OAuth2", "CORS", "Rate Limiting"], tasks: ["Implement secure Auth middleware"], resources: ["OWASP Guide"], completed: false },
-    { week: 6, focus: "Docker Containerization & CI/CD", topics: ["Dockerfiles", "Docker Compose", "GitHub Actions", "Cloud Deployment"], tasks: ["Deploy full stack app to Render/Vercel"], resources: ["Docker Docs"], completed: false },
-    { week: 7, focus: "Full Stack Capstone Portfolio Project", topics: ["WebSockets", "Real-time Chat", "Performance Monitoring"], tasks: ["Complete Capstone Project and push to GitHub"], resources: ["GitHub"], completed: false },
-    { week: 8, focus: "Placement Prep & System Design Interviews", topics: ["System Design Basics", "STAR Behavioral Technique", "ATS Resume Fine-Tuning"], tasks: ["Conduct 2 Mock Interviews"], resources: ["InterviewBit"], completed: false },
-  ],
-  milestones: [],
-};
