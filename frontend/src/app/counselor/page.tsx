@@ -221,8 +221,18 @@ export default function CounselorPage() {
               )}
             </ScrollArea>
 
-            <div className="border-t p-4">
-              <form onSubmit={handleSubmit} className="flex gap-2">
+            <div className="border-t p-4 flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="text-destructive hover:bg-destructive/10 shrink-0"
+                title="Clear Chat History"
+                onClick={clearHistory}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <form onSubmit={handleSubmit} className="flex flex-1 gap-2">
                 <Input
                   placeholder="Type your message..."
                   value={input}
